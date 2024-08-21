@@ -10,7 +10,7 @@ export class RolesGuard implements CanActivate {
         const user = request.user;
 
         // Verificar si el rol del usuario tiene permisos para modificar roles
-        if (user.role !== 'admin') { 
+        if (user.role !== 'admin' && user.role !== 'SuperAdmin') { 
             throw new ForbiddenException('You do not have permission to modify roles.');
         }
 
