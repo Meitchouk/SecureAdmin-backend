@@ -2,12 +2,12 @@ import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Req, SetMet
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { SelfRoleGuard } from 'src/auth/self-role.guard';
 import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('users')
 @ApiBearerAuth()  // Esto indica que todos los endpoints de este controlador requieren autenticación con Bearer token
