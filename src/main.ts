@@ -26,15 +26,19 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   // Middleware para redirigir desde la raíz a la documentación de Swagger
-  app.use('/', (req, res: Response) => {
-    res.send(`
-      <html>
-        <body>
-          <h1>Bienvenido a SecureAdmin API</h1>
-          <p>Accede a la <a href="/api/docs">documentación de Swagger</a>.</p>
-        </body>
-      </html>
-    `);
+  app.use('/', (req: { path: string; }, res: Response, next: () => void) => {
+    if (req.path === '/') {
+      res.send(`
+        <html>
+          <body>
+            <h1>Bienvenido a SecureAdmin API</h1>
+            <p>Accede a la <a href="/api/docs">documentación de Swagger</a>.</p>
+          </body>
+        </html>
+      `);
+    } else {
+      next(); // Deja que otras rutas continúen normalmente
+    }
   });
 
   // Servicio de Prisma
