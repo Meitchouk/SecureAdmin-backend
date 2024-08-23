@@ -47,7 +47,19 @@ export class UsersService {
                 createdAt: true,
                 roleId: true,
                 password: false,
+                role: {
+                    select: {
+                        description: true,
+                    },
+                },
             },
+        }).then(users => {
+            return users.map(user => {
+                return {
+                    ...user,
+                    role: user.role.description
+                };
+            });
         });
     }
 
