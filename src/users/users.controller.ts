@@ -83,8 +83,6 @@ export class UsersController {
         },
     })
     @Get()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @SetMetadata('roles', ['admin', 'superadmin']) // Solo estos roles pueden acceder a este endpoint
     findAll(@Req() req: Request) {
         return this.usersService.findAllUsers(req.user.roleId);
     }
