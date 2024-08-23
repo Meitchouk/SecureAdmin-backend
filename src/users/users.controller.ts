@@ -82,9 +82,11 @@ export class UsersController {
             ],
         },
     })
+    @ApiOperation({ summary: 'Get all users' })
     @Get()
-    findAll(@Req() req: Request) {
-        return this.usersService.findAllUsers(req.user.roleId);
+    // Removing the JwtAuthGuard to allow public access
+    findAll() {
+        return this.usersService.findAllUsers();
     }
 
     @ApiOperation({ summary: 'Obtener un usuario por ID' })

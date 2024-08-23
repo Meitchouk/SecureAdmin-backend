@@ -35,9 +35,20 @@ export class UsersService {
      * Obtiene todos los usuarios de la base de datos.
      * @returns Una lista de todos los usuarios.
      */
-    async findAllUsers(requesterRoleId: number) {
-        // Todos los usuarios pueden ver todos los usuarios
-        return this.prisma.user.findMany();
+    async findAllUsers() {
+        // This method no longer checks for requesterRoleId, making it accessible to everyone
+        return this.prisma.user.findMany({
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                name: true,
+                status: true,
+                createdAt: true,
+                roleId: true,
+                password: false,
+            },
+        });
     }
 
 
