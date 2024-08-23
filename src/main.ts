@@ -14,10 +14,12 @@ async function bootstrap() {
   // Habilitar CORS para localhost y un dominio futuro
   app.enableCors({
     origin: [
-      'http://localhost:5173',  // Permite solicitudes desde localhost
-      // 'https://sample.com', 
+      'http://localhost:5173',
+      'https://secure-admin-frontend-cd2f018cd39c.herokuapp.com',
     ],
-    credentials: true,  // Permite envío de cookies si es necesario
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+    credentials: true,
   });
 
   // Usar un ValidationPipe global para validaciones automáticas de DTOs
