@@ -6,4 +6,5 @@ export type UserType = {
   status: boolean;
   createdAt: string;
   roleId: number;
+  password: string;
 };

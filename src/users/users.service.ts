@@ -16,8 +16,12 @@ export class UsersService {
      * @param createUserDto - Datos para crear un nuevo usuario.
      * @returns El usuario creado.
      */
-    async createUser(createUserDto: CreateUserDto) {
-        // Hashear la contraseña antes de guardarla
+    async createUser(createUserDto: CreateUserDto, requesterRoleId: number) {
+        // Solo los usuarios con roles de admin o superadmin pueden crear nuevos usuarios
+        if (![1, 2].includes(requesterRoleId)) {
+            throw new ForbiddenException('You do not have permission to create a user.');
+        }
+
         const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
         createUserDto.password = hashedPassword;
 
@@ -26,13 +30,20 @@ export class UsersService {
         });
     }
 
+
     /**
      * Obtiene todos los usuarios de la base de datos.
      * @returns Una lista de todos los usuarios.
      */
-    async findAllUsers() {
+    async findAllUsers(requesterRoleId: number) {
+        // Solo los roles admin y superadmin pueden ver todos los usuarios
+        if (![1, 2].includes(requesterRoleId)) {
+            throw new ForbiddenException('You do not have permission to view all users.');
+        }
+
         return this.prisma.user.findMany();
     }
+
 
     /**
      * Obtiene un usuario por su ID.
@@ -40,13 +51,19 @@ export class UsersService {
      * @returns El usuario correspondiente al ID.
      * @throws NotFoundException - Si el usuario no se encuentra.
      */
-    async findUserById(id: number) {
+    async findUserById(id: number, requesterRoleId: number) {
+        // Solo los roles admin y superadmin pueden ver la información de un usuario específico
+        if (![1, 2].includes(requesterRoleId)) {
+            throw new ForbiddenException('You do not have permission to view this user.');
+        }
+
         const user = await this.prisma.user.findUnique({ where: { id } });
         if (!user) {
             throw new NotFoundException('User not found');
         }
         return user;
     }
+
 
     /**
      * Obtiene un usuario por su correo electrónico.
@@ -71,7 +88,12 @@ export class UsersService {
      * @returns {Promise<{ id: number, message: string }>} - A promise that resolves to an object containing the updated user's ID and a success message.
      * @throws {Error} - If any invalid fields are provided in the updateUserDto object.
      */
-    async updateUser(id: number, updateUserDto: UpdateUserDto) {
+    async updateUser(id: number, updateUserDto: UpdateUserDto, requesterRoleId: number) {
+        // Solo los roles admin y superadmin pueden actualizar usuarios
+        if (![1, 2].includes(requesterRoleId)) {
+            throw new ForbiddenException('You do not have permission to update this user.');
+        }
+
         const { username, password, email, name } = updateUserDto;
         const data: any = {};
 
@@ -80,7 +102,6 @@ export class UsersService {
         }
 
         if (password) {
-            // Hashear la nueva contraseña si se está actualizando
             data.password = await bcrypt.hash(password, 10);
         }
 
@@ -92,7 +113,6 @@ export class UsersService {
             data.name = name;
         }
 
-        // Check if any other fields are being modified
         const allowedFields = ['username', 'password', 'email', 'name'];
         const invalidFields = Object.keys(updateUserDto).filter(field => !allowedFields.includes(field));
         if (invalidFields.length > 0) {
@@ -110,19 +130,26 @@ export class UsersService {
         };
     }
 
+
     /**
      * Elimina un usuario por su ID.
      * @param id - El ID del usuario que se quiere eliminar.
      * @returns El usuario eliminado.
      * @throws NotFoundException - Si el usuario no se encuentra.
      */
-    async deleteUser(id: number) {
+    async deleteUser(id: number, requesterRoleId: number) {
+        // Solo los roles admin y superadmin pueden eliminar usuarios
+        if (![1, 2].includes(requesterRoleId)) {
+            throw new ForbiddenException('You do not have permission to delete this user.');
+        }
+
         const user = await this.prisma.user.findUnique({ where: { id } });
         if (!user) {
             throw new NotFoundException('User not found');
         }
         return this.prisma.user.delete({ where: { id } });
     }
+
 
     /**
      * Cambia el rol de un usuario.
@@ -132,7 +159,12 @@ export class UsersService {
      * @returns El usuario con el rol actualizado.
      * @throws ForbiddenException - Si el usuario intenta cambiar su propio rol.
      */
-    async changeRoleUser(id: number, roleId: number, requesterId: number) {
+    async changeRoleUser(id: number, roleId: number, requesterId: number, requesterRoleId: number) {
+        // Solo los roles admin y superadmin pueden cambiar roles
+        if (![1, 2].includes(requesterRoleId)) {
+            throw new ForbiddenException('You do not have permission to change user roles.');
+        }
+
         const user = await this.prisma.user.findUnique({ where: { id } });
         if (!user) {
             throw new NotFoundException('User not found');
@@ -147,4 +179,5 @@ export class UsersService {
             data: { roleId },
         });
     }
+
 }

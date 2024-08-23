@@ -6,9 +6,15 @@ import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from 'src/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { UsersService } from '../users/users.service';
+import { RolesService } from 'src/roles/roles.service';
+import { UsersController } from 'src/users/users.controller';
+import { RolesController } from 'src/roles/roles.controller';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     UsersModule,
     PassportModule,
     JwtModule.registerAsync({
@@ -19,8 +25,9 @@ import { AuthController } from './auth.controller';
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRATION') },
       }),
     }),
+    PrismaModule,
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, UsersService, RolesService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

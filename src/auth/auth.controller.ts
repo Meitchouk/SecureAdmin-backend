@@ -1,10 +1,9 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, Get, Request, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiProperty } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RegisterDto } from './dto/register.dto';
 
-/**
- * Represents the data transfer object for the login operation.
- */
 class LoginDto {
     @ApiProperty({
         description: 'Correo electrónico del usuario',
@@ -28,21 +27,23 @@ export class AuthController {
     @ApiOperation({ summary: 'Iniciar sesión' })
     @ApiBody({ type: LoginDto })
     @ApiResponse({
-        status: 200, description: 'Autenticación exitosa.', schema: {
+        status: 200,
+        description: 'Autenticación exitosa.',
+        schema: {
             example: {
-                "message": "Login successfully completed",
-                "access_token": "[access_token]",
-                "user": {
-                    "id": "[id]",
-                    "username": "username",
-                    "email": "user@example.com",
-                    "name": "User",
-                    "status": true,
-                    "createdAt": "[createdAt]",
-                    "roleId": "[roleId]"
-                }
-            }
-        }
+                message: 'Login successfully completed',
+                access_token: '[access_token]',
+                user: {
+                    id: '[id]',
+                    username: 'username',
+                    email: 'user@example.com',
+                    name: 'User',
+                    status: true,
+                    createdAt: '[createdAt]',
+                    roleId: '[roleId]',
+                },
+            },
+        },
     })
     @ApiResponse({ status: 401, description: 'Credenciales incorrectas.' })
     async login(@Body() loginDto: LoginDto) {
@@ -51,5 +52,37 @@ export class AuthController {
             throw new UnauthorizedException('Credenciales incorrectas');
         }
         return this.authService.login(user);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('profile')
+    @ApiOperation({ summary: 'Obtener perfil de usuario' })
+    @ApiResponse({
+        status: 200,
+        description: 'Perfil de usuario obtenido con éxito.',
+        schema: {
+            example: {
+                id: '[id]',
+                username: 'username',
+                email: 'email@email.com',
+                name: 'User',
+                status: true,
+                createdAt: '[createdAt]',
+                roleId: '[roleId]',
+            },
+        },
+    })
+    @ApiResponse({ status: 401, description: 'No autorizado.' })
+    async getProfile(@Request() req) {
+        return req.user;
+    }
+
+    @Post('register')
+    @ApiOperation({ summary: 'Registrar usuario' })
+    @ApiBody({ type: RegisterDto })
+    @ApiResponse({ status: 201, description: 'Usuario registrado exitosamente.' })
+    @ApiResponse({ status: 400, description: 'Correo electrónico ya registrado.' })
+    async register(@Body() registerDto: RegisterDto) {
+        return this.authService.register(registerDto);
     }
 }

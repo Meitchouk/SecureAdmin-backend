@@ -48,10 +48,11 @@ export class UsersController {
         },
     })
     @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-    @UseGuards(JwtAuthGuard)
     @Post()
-    create(@Body() createUserDto: CreateUserDto) {
-        return this.usersService.createUser(createUserDto);
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @SetMetadata('roles', ['admin', 'superadmin']) // Solo usuarios con estos roles pueden crear usuarios
+    create(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
+        return this.usersService.createUser(createUserDto, req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Obtener todos los usuarios' })
@@ -81,10 +82,11 @@ export class UsersController {
             ],
         },
     })
-    @UseGuards(JwtAuthGuard)
     @Get()
-    findAll() {
-        return this.usersService.findAllUsers();
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @SetMetadata('roles', ['admin', 'superadmin']) // Solo estos roles pueden acceder a este endpoint
+    findAll(@Req() req: Request) {
+        return this.usersService.findAllUsers(req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Obtener un usuario por ID' })
@@ -105,10 +107,11 @@ export class UsersController {
         },
     })
     @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-    @UseGuards(JwtAuthGuard)
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.usersService.findUserById(+id);
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @SetMetadata('roles', ['admin', 'superadmin']) // Solo estos roles pueden acceder a este endpoint
+    findOne(@Param('id') id: string, @Req() req: Request) {
+        return this.usersService.findUserById(+id, req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Actualizar un usuario por ID' })
@@ -143,10 +146,11 @@ export class UsersController {
     })
     @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
     @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-    @UseGuards(JwtAuthGuard)
     @Put(':id')
-    update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-        return this.usersService.updateUser(+id, updateUserDto);
+    @UseGuards(JwtAuthGuard, RolesGuard, SelfRoleGuard)
+    @SetMetadata('roles', ['admin', 'superadmin']) // Solo estos roles pueden actualizar usuarios
+    update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Req() req: Request) {
+        return this.usersService.updateUser(+id, updateUserDto, req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Eliminar un usuario por ID' })
@@ -168,11 +172,11 @@ export class UsersController {
     })
     @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
     @ApiResponse({ status: 403, description: 'Acceso prohibido.' })
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @SetMetadata('roles', ['admin'])
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.usersService.deleteUser(+id);
+    @UseGuards(JwtAuthGuard, RolesGuard, SelfRoleGuard)
+    @SetMetadata('roles', ['admin', 'superadmin']) // Solo estos roles pueden eliminar usuarios
+    remove(@Param('id') id: string, @Req() req: Request) {
+        return this.usersService.deleteUser(+id, req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Cambiar el rol de un usuario por ID' })
@@ -205,10 +209,12 @@ export class UsersController {
     })
     @ApiResponse({ status: 403, description: 'Prohibido modificar el rol del propio usuario.' })
     @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-    @UseGuards(JwtAuthGuard, RolesGuard, SelfRoleGuard)
     @Put(':id/role')
+    @UseGuards(JwtAuthGuard, RolesGuard, SelfRoleGuard)
+    @SetMetadata('roles', ['admin', 'superadmin']) // Solo estos roles pueden cambiar roles de usuarios
     changeRole(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto, @Req() req: Request) {
         const { roleId } = updateRoleDto;
-        return this.usersService.changeRoleUser(+id, roleId, req.user.userId);
+        // Aquí añadimos el roleId del usuario autenticado como requesterRoleId
+        return this.usersService.changeRoleUser(+id, roleId, req.user.userId, req.user.roleId);
     }
 }

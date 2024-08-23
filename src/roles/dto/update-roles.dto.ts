@@ -1,11 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt } from 'class-validator';
 
 export class UpdateRoleDto {
-  @IsInt()
-  @ApiProperty({
-    description: 'ID del rol',
-    example: 1,
-  })
-  roleId: number;
+    @ApiProperty({
+        description: 'Descripción del rol',
+        example: 'Superadmin',
+    })
+    description?: string;
+
+    @ApiProperty({
+        description: 'Estado del rol (activo/inactivo)',
+        example: true,
+    })
+    status?: boolean;
 }

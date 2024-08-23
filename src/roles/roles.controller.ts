@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateRoleDto } from './dto/create-roles.dto';
 import { UpdateRoleDto } from './dto/update-roles.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Request } from 'express';
 
 @ApiTags('roles')
 @ApiBearerAuth()  // Indicando que todos los endpoints requieren autenticación
@@ -38,8 +39,8 @@ export class RolesController {
     @ApiResponse({ status: 400, description: 'Datos inválidos.' })
     @UseGuards(JwtAuthGuard)
     @Post()
-    create(@Body() createRoleDto: CreateRoleDto) {
-        return this.rolesService.createRole(createRoleDto);
+    create(@Body() createRoleDto: CreateRoleDto, @Req() req: Request) {
+        return this.rolesService.createRole(createRoleDto, req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Obtener todos los roles' })
@@ -65,8 +66,8 @@ export class RolesController {
     })
     @UseGuards(JwtAuthGuard)
     @Get()
-    findAll() {
-        return this.rolesService.findAllRoles();
+    findAll(@Req() req: Request) {
+        return this.rolesService.findAllRoles(req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Obtener un rol por ID' })
@@ -86,8 +87,8 @@ export class RolesController {
     @ApiResponse({ status: 404, description: 'Rol no encontrado.' })
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.rolesService.findRoleById(+id);
+    findOne(@Param('id') id: string, @Req() req: Request) {
+        return this.rolesService.findRoleById(+id, req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Actualizar un rol por ID' })
@@ -119,8 +120,8 @@ export class RolesController {
     @ApiResponse({ status: 400, description: 'Datos inválidos.' })
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-        return this.rolesService.updateRole(+id, updateRoleDto);
+    update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto, @Req() req: Request) {
+        return this.rolesService.updateRole(+id, updateRoleDto, req.user.roleId);
     }
 
     @ApiOperation({ summary: 'Eliminar un rol por ID' })
@@ -140,7 +141,7 @@ export class RolesController {
     @ApiResponse({ status: 404, description: 'Rol no encontrado.' })
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.rolesService.deleteRole(+id);
+    remove(@Param('id') id: string, @Req() req: Request) {
+        return this.rolesService.deleteRole(+id, req.user.roleId);
     }
 }

@@ -9,11 +9,12 @@ export class RolesGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const user = request.user;
 
-        // Verificar si el rol del usuario tiene permisos para modificar roles
-        if (user.role !== 'admin' && user.role !== 'SuperAdmin') { 
-            throw new ForbiddenException('You do not have permission to modify roles.');
+        // Verificar si el rol del usuario es admin o superadmin
+        if (user.roleId === 1 || user.roleId === 2) {
+            return true;
+        } else {
+            // Lanzar un error con el roleId del usuario
+            throw new ForbiddenException(`RolesGuard | No tienes permiso para realizar esta acción. Tu roleId es: ${user.roleId}`);
         }
-
-        return true;
     }
 }
