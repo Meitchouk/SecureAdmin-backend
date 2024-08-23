@@ -37,9 +37,9 @@ export class UsersService {
      */
     async findAllUsers(requesterRoleId: number) {
         // Solo los roles admin y superadmin pueden ver todos los usuarios
-        if (![1, 2].includes(requesterRoleId)) {
-            throw new ForbiddenException('You do not have permission to view all users.');
-        }
+        // if (![1, 2].includes(requesterRoleId)) {
+        //     throw new ForbiddenException('You do not have permission to view all users.');
+        // }
 
         return this.prisma.user.findMany();
     }
