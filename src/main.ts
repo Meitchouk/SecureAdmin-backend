@@ -14,7 +14,8 @@ async function bootstrap() {
   // Habilitar CORS para localhost y un dominio futuro
   app.enableCors({
     origin: [
-      '*',
+      'http://localhost:5173',
+      'https://secure-admin-frontend-cd2f018cd39c.herokuapp.com',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
