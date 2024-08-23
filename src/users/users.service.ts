@@ -21,12 +21,7 @@ export class UsersService {
      * @param createUserDto - Datos para crear un nuevo usuario.
      * @returns El usuario creado.
      */
-    async createUser(createUserDto: CreateUserDto, requesterRoleId: number) {
-        // Solo los usuarios con roles de admin o superadmin pueden crear nuevos usuarios
-        if (![1, 2].includes(requesterRoleId)) {
-            throw new ForbiddenException('You do not have permission to create a user.');
-        }
-
+    async createUser(createUserDto: CreateUserDto) {
         const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
         createUserDto.password = hashedPassword;
 

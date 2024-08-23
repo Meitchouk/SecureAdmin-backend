@@ -73,10 +73,9 @@ export class UsersController {
     })
     @ApiResponse({ status: 400, description: 'Datos inválidos.' })
     @Post()
-    @UseGuards(JwtAuthGuard, RolesGuard)
     @SetMetadata('roles', ['admin', 'superadmin']) // Solo usuarios con estos roles pueden crear usuarios
     create(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
-        return this.usersService.createUser(createUserDto, req.user.roleId);
+        return this.usersService.createUser(createUserDto);
     }
 
     @ApiOperation({ summary: 'Obtener todos los usuarios' })
