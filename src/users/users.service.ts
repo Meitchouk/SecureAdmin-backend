@@ -3,13 +3,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
+import { MailService } from '../mail/mail.service';
 
 /**
  * Servicio para gestionar los usuarios.
  */
 @Injectable()
 export class UsersService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly mailService: MailService
+    ) { }
 
     /**
      * Crea un nuevo usuario en la base de datos.
@@ -199,4 +204,54 @@ export class UsersService {
         });
     }
 
+    /**
+     * Sends a password reset email to the user.
+     * @param email - The email of the user requesting password reset.
+     * @returns A message indicating that the password reset email has been sent.
+     */
+    async forgotPassword(email: string) {
+        const user = await this.findByEmail(email);
+        if (!user) {
+            return { message: 'Usuario no encontrado' };
+        }
+
+        // Generate a password reset token (you can use JWT or another method)
+        const resetToken = jwt.sign({ email }, 'secretKey', { expiresIn: '1h' });
+
+        // Send the password reset email
+        await this.mailService.sendPasswordReset(email, resetToken);
+
+        return { message: 'Correo de recuperación enviado' };
+    }
+
+    /**
+     * Resets the user's password.
+     * @param email - The email of the user requesting password reset.
+     * @param token - The password reset token.
+     * @param newPassword - The new password.
+     * @returns A message indicating that the password has been reset.
+     */
+    async resetPassword(email: string, token: string, newPassword: string) {
+        // Verify the password reset token
+        jwt.verify(token, 'secretKey', async (err, decoded) => {
+            if (err) {
+                return { message: 'Token inválido' };
+            }
+
+            // Update the user's password
+            const user = await this.findByEmail(email);
+
+            if (!user) {
+                return { message: 'Usuario no encontrado' };
+            }
+            
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: { password: hashedPassword },
+            });
+
+            return { message: 'Contraseña actualizada' };
+        });
+    }
 }

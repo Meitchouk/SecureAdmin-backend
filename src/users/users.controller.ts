@@ -8,12 +8,36 @@ import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse, ApiBearerAuth } 
 import { Request } from 'express';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { MailService } from 'src/mail/mail.service';
+import * as jwt from 'jsonwebtoken';
 
 @ApiTags('users')
 @ApiBearerAuth()  // Esto indica que todos los endpoints de este controlador requieren autenticación con Bearer token
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) { }
+    constructor(private readonly usersService: UsersService, private readonly mailService: MailService,) { }
+
+    @Post('forgot-password')
+    async forgotPassword(@Body('email') email: string) {
+        const user = await this.usersService.findByEmail(email);
+        if (!user) {
+            return { message: 'Usuario no encontrado' };
+        }
+
+        // Generar un token de restablecimiento de contraseña (puedes usar JWT u otro método)
+        const resetToken = jwt.sign({ email }, 'secretKey', { expiresIn: '1h' });
+
+        // Enviar el correo de restablecimiento
+        await this.mailService.sendPasswordReset(email, resetToken);
+
+        return { message: 'Correo de recuperación enviado' };
+    }
+
+    @Post('reset-password')
+    async resetPassword(@Body('email') email: string, @Body('token') token: string, @Body('password') password: string) {
+        const result = await this.usersService.resetPassword(email, token, password);
+        return result;
+    }
 
     @ApiOperation({ summary: 'Crear un nuevo usuario' })
     @ApiBody({

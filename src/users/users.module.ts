@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { MailService } from 'src/mail/mail.service';
+import { ConfigModule } from '@nestjs/config';
 
 /**
  * Represents the UsersModule class.
@@ -10,9 +12,12 @@ import { PrismaModule } from 'src/prisma/prisma.module';
  * It also exports the UsersService for other modules to use.
  */
 @Module({
-  imports: [PrismaModule],
-  providers: [UsersService],
+  imports: [
+    ConfigModule.forRoot(),
+    PrismaModule
+  ],
+  providers: [UsersService, MailService],
   controllers: [UsersController],
-  exports: [UsersService],
+  exports: [UsersService, MailService],
 })
 export class UsersModule { }
